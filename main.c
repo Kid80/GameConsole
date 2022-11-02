@@ -27,12 +27,6 @@ void RunProgram(int (*p)()){
 
 int main(void){
     stdio_init_all();
-
-    adc_init();
-
-    adc_gpio_init(26);
-    adc_select_input(0);
-    uint8_t counter = 0;
    	
 	System_Init();
 	SD_Init();

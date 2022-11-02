@@ -9,7 +9,6 @@
 #include "stdbool.h"
 #include "input.h"
 #include "tetris.h"
-#include "random.h"
 
 /* To Do
 Switch down press function to down instead of left
@@ -329,117 +328,6 @@ int tet_output(){
     return 0;
 }
 
-/*
-Starts the tetris game
-
-Return Codes:
-0 - Game exited successfully
-1 - Piece position error
-2 - Piece out of bounds when being cleared from the board
-*/
-int tetris(){
-    tet_Outputting = false;
-    tet_ReRender = false;
-    state = TET_MENU;
-
-    // Note: d_down should be changed to tet_drop when gpio 2 is working
-    input_init();
-    input_set_d_up(&tet_rotate);
-    input_set_d_down(&tet_down);
-    input_set_d_left(&tet_left);
-    input_set_d_right(&tet_right);
-
-    Code = tet_mainloop();
-    return Code;
-}
-
-void tet_end(){
-    input_clear();
-}
-
-int tet_mainloop(){
-    while(1){
-        switch(state){
-            case TET_GAME:
-                Code = tet_gameloop();
-                if(Code != 0){ return Code; }
-                break;
-            case TET_MENU:
-                Code = tet_menu();
-                if(Code != 0){ return Code; }
-                break;
-            case TET_GAMEOVER:
-                Code = tet_gameover();
-                break;
-            case TET_EXITED:
-                tet_end();
-                return 0;
-                break;
-        }
-    }
-}
-
-int tet_menu(){
-    bool started = false;
-    GUI_Clear(colours[1]);
-    GUI_DisChar(189, 5, 'T', &Font24, colours[1], colours[6]);
-    GUI_DisChar(206, 5, 'E', &Font24, colours[1], colours[7]);
-    GUI_DisChar(223, 5, 'T', &Font24, colours[1], colours[3]);
-    GUI_DisChar(240, 5, 'R', &Font24, colours[1], colours[5]);
-    GUI_DisChar(257, 5, 'I', &Font24, colours[1], colours[2]);
-    GUI_DisChar(274, 5, 'S', &Font24, colours[1], colours[4]);
-
-    GUI_DisString_EN(78, 55, "Press down to play!", &Font24, colours[1], 0x0000);
-
-    isReady = false;
-    while(1){
-        if(isReady == true){
-            break;
-        }
-    }
-    GUI_Clear(colours[0]);
-    state = TET_GAME;
-    return 0;
-}
-
-int tet_gameover(){
-    return 0;
-}
-
-int tet_gameloop(){
-    Piece.isActive = false;
-    bool isRunning = true;
-    while(isRunning){
-        Driver_Delay_ms(1000);
-        if(tet_can_lower()){
-            Piece.y--;
-        }
-        else{
-            Piece.isActive = false;
-            int blockX;
-            int blockY;
-            for(int i = 0; i < 4; i++){
-                int blockX = Piece.x + pieces[Piece.r][Piece.i][i][0];
-                int blockY = Piece.y + pieces[Piece.r][Piece.i][i][1];
-                if(blockY >= 20){
-                    state = TET_GAMEOVER;
-                    return 0;
-                }
-                board[blockX][blockY] = Piece.c;
-            }
-            tet_checkBoard();
-        }
-        if(!Piece.isActive){
-            tet_GeneratePiece();
-        }
-        Code = tet_output();
-        if(Code != 0){
-            return Code + 10;
-        }
-    }
-    return 0;
-}
-
 void tet_GeneratePiece(){
     Piece.x = 4;
     Piece.y = 20;
@@ -475,6 +363,7 @@ void tet_checkBoard(){
                 }
             }
             noLines++;
+            y--;
         }
     }
     switch (noLines)
@@ -496,4 +385,114 @@ void tet_checkBoard(){
         default:
             break;
     }
+}
+
+/*
+Starts the tetris game
+
+Return Codes:
+0 - Game exited successfully
+1 - Piece position error
+2 - Piece out of bounds when being cleared from the board
+*/
+int tetris(){
+    tet_Outputting = false;
+    tet_ReRender = false;
+    state = TET_MENU;
+
+    // Note: d_down should be changed to tet_drop when gpio 2 is working
+    input_init();
+    input_set_d_up(&tet_rotate);
+    input_set_d_down(&tet_down);
+    input_set_d_left(&tet_left);
+    input_set_d_right(&tet_right);
+    input_set_j_sw(&tet_left);
+
+    Code = tet_mainloop();
+    return Code;
+}
+
+
+void tet_end(){
+    input_clear();
+}
+
+// State Machine
+int tet_mainloop(){
+    while(1){
+        switch(state){
+            case TET_GAME:
+                Code = tet_gameloop();
+                if(Code != 0){ return Code; }
+                break;
+            case TET_MENU:
+                Code = tet_menu();
+                if(Code != 0){ return Code; }
+                break;
+            case TET_GAMEOVER:
+                Code = tet_gameover();
+                break;
+            case TET_EXITED:
+                tet_end();
+                return 0;
+                break;
+        }
+    }
+}
+
+int tet_menu(){
+    bool started = false;
+    GUI_Clear(colours[1]);
+    GUI_DisChar(189, 5, 'T', &Font24, colours[1], colours[6]);
+    GUI_DisChar(206, 5, 'E', &Font24, colours[1], colours[7]);
+    GUI_DisChar(223, 5, 'T', &Font24, colours[1], colours[3]);
+    GUI_DisChar(240, 5, 'R', &Font24, colours[1], colours[5]);
+    GUI_DisChar(257, 5, 'I', &Font24, colours[1], colours[2]);
+    GUI_DisChar(274, 5, 'S', &Font24, colours[1], colours[4]);
+
+    GUI_DisString_EN(78, 55, "Press down to play!", &Font24, colours[1], 0x0000);
+
+    isReady = false;
+    while(!isReady);
+    GUI_Clear(colours[0]);
+    state = TET_GAME;
+    return 0;
+}
+
+int tet_gameover(){
+    return 0;
+}
+
+int tet_gameloop(){
+    Piece.isActive = false;
+    bool isRunning = true;
+    while(isRunning){
+        Driver_Delay_ms(1000);
+        if(tet_can_lower()){
+            //Piece.y--;
+        }
+        else{
+            Piece.isActive = false;
+            int blockX;
+            int blockY;
+            for(int i = 0; i < 4; i++){
+                int blockX = Piece.x + pieces[Piece.r][Piece.i][i][0];
+                int blockY = Piece.y + pieces[Piece.r][Piece.i][i][1];
+                if(blockY >= 20){
+                    state = TET_GAMEOVER;
+                    return 0;
+                }
+                board[blockX][blockY] = Piece.c;
+            }
+            tet_checkBoard();
+        }
+        if(!Piece.isActive){
+            tet_GeneratePiece();
+        }
+        Code = tet_output();
+        if(Code != 0){
+            return Code + 10;
+        }
+    }
+    return 0;
 }
