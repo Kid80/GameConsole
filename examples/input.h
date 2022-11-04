@@ -1,9 +1,6 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
-#include "stdbool.h"
-#include "stdint.h"
-
 #define D_UP    0
 #define D_DOWN  1
 // Pin 2 dead
@@ -38,7 +35,7 @@ void input_clear();
 uint16_t input_poll_x();
 uint16_t input_poll_y();
 
-bool random_bit();
+//bool random_bit();
 uint8_t random_byte();
 
 #endif

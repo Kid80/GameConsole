@@ -12,6 +12,7 @@
 #include "tetris.h"
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
+#include "hardware/pio.h"
 
 void RunProgram(int (*p)()){
     int Code = (*p)();

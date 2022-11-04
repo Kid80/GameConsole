@@ -64,10 +64,13 @@ piece Ghost2;
 bool tet_Outputting;
 
 // Says whether a rerender is required
-bool tet_ReRender;
+volatile bool tet_ReRender;
 
 // Says if the IRQ should be ignored
 bool tet_IgnoreIRQ;
+
+// Says if the process has been interrupted
+volatile bool tet_Interupted;
 
 // Drop speed in cells per second
 int G = 0;
@@ -94,6 +97,7 @@ void tet_addScore(int no){
 void tet_down(){
     switch(state){
         case TET_GAME:
+            tet_Interupted = true;
             if(tet_IgnoreIRQ){ break; }
             if(!Piece.isActive){ break; }
             tet_IgnoreIRQ = true;
@@ -122,6 +126,7 @@ void tet_down(){
 void tet_left(){
     switch(state){
         case TET_GAME:
+            tet_Interupted = true;
             if(tet_IgnoreIRQ){ break; }
             if(!Piece.isActive){ break; }
             tet_IgnoreIRQ = true;
@@ -149,6 +154,7 @@ void tet_left(){
 void tet_right(){
     switch(state){
         case TET_GAME:
+            tet_Interupted = true;
             if(tet_IgnoreIRQ){ break; }
             if(!Piece.isActive){ break; }
             tet_IgnoreIRQ = true;
@@ -176,6 +182,7 @@ void tet_right(){
 void tet_rotate(){
     switch(state){
         case TET_GAME:
+            tet_Interupted = true;
             if(tet_IgnoreIRQ){ break; }
             if(!Piece.isActive){ break; }
             tet_IgnoreIRQ = true;
@@ -286,40 +293,51 @@ int tet_output(){
 
     // Updates the board
     uint16_t xpos = 0;
-    int ypos = 0;
-    for(int y = 0; y < 20; y++){
-        for(int x = 0; x < TET_BOARD_X; x++){
-            xpos = x * 15 + 165;
-            ypos = y * -15 + 295;
-            uint16_t Ypos = ypos;
-            // If statement removed to fix ghosting issue
-            if(board[x][y] != lastboard[x][y]){
-                GUI_DrawRectangle(xpos, Ypos, xpos + 14, Ypos + 14, colours[board[x][y]], DRAW_FULL, DOT_PIXEL_DFT);
+    uint16_t ypos = 0;
+    tet_Interupted = true;
+    while(tet_Interupted){
+        tet_Interupted = false;
+        for(int y = 0; y < 20; y++){
+            for(int x = 0; x < TET_BOARD_X; x++){
+                xpos = x * 15 + 165;
+                ypos = y * -15 + 295;
+                //uint16_t Ypos = ypos;
+                if(board[x][y] != lastboard[x][y]){
+                    GUI_DrawRectangle(xpos, ypos, xpos + 14, ypos + 14, colours[board[x][y]], DRAW_FULL, DOT_PIXEL_DFT);
+                    
+                }
             }
         }
     }
 
     // Sets lastboard to the current board
-    for(int y = 0; y < TET_BOARD_Y; y++){
-        for(int x = 0; x < TET_BOARD_X; x++){
-            lastboard[x][y] = board[x][y];
+    tet_Interupted = true;
+    while(tet_Interupted){
+        tet_Interupted = false;
+        for(int y = 0; y < TET_BOARD_Y; y++){
+            for(int x = 0; x < TET_BOARD_X; x++){
+                lastboard[x][y] = board[x][y];
+            }
         }
     }
 
     // Removes the current piece from the board
-    for(int i = 0; i < 4; i++){
-        blockY = Ghost2.y + pieces[Ghost2.r][Ghost2.i][i][1];
-        if(Ghost2.isActive){
-            blockX = Ghost2.x + pieces[Ghost2.r][Ghost2.i][i][0];
-            if(blockY >= 0 && blockX >= 0 && blockX < TET_BOARD_X && blockY < TET_BOARD_Y){
-                board[blockX][blockY] = 0;
-            }
-            else{
-                return 2;
+    tet_Interupted = true;
+    while(tet_Interupted){
+        tet_Interupted = false;
+        for(int i = 0; i < 4; i++){
+            blockY = Ghost2.y + pieces[Ghost2.r][Ghost2.i][i][1];
+            if(Ghost2.isActive){
+                blockX = Ghost2.x + pieces[Ghost2.r][Ghost2.i][i][0];
+                if(blockY >= 0 && blockX >= 0 && blockX < TET_BOARD_X && blockY < TET_BOARD_Y){
+                    board[blockX][blockY] = 0;
+                }
+                else{
+                    return 2;
+                }
             }
         }
     }
-
     if(tet_ReRender){
         tet_ReRender = false;
         tet_output();
@@ -469,7 +487,7 @@ int tet_gameloop(){
     while(isRunning){
         Driver_Delay_ms(1000);
         if(tet_can_lower()){
-            //Piece.y--;
+            Piece.y--;
         }
         else{
             Piece.isActive = false;

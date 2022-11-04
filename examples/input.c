@@ -8,8 +8,6 @@
 #include "pico/stdlib.h"
 #include "input.h"
 #include "hardware/adc.h"
-#include "stdbool.h"
-#include "stdint.h"
 
 void (*input_d_up)();
 void (*input_d_down)();
@@ -97,12 +95,12 @@ uint16_t input_poll_y(){
     return adc_read();
 }
 
-bool random_bit(){
+/*bool random_bit(){
     adc_select_input(2);
     uint16_t result = adc_read();
     result = result & 0x1;
     return result == 0 ? false : true;
-}
+}*/
 
 uint8_t random_byte(){
     adc_select_input(2);

@@ -7,15 +7,21 @@ add_subdirectory(lib/config)
 add_subdirectory(lib/lcd)
 add_subdirectory(lib/font)
 add_subdirectory(examples)
+add_subdirectory(sd)
 add_subdirectory(lib/fatfs)
 add_subdirectory(lib/sdcard)
+add_subdirectory(pio)
 
 include_directories(examples)
+include_directories(sd)
 include_directories(./lib/config)
 include_directories(./lib/lcd)
 include_directories(./lib/font)
 include_directories(./lib/fatfs)
 include_directories(./lib/sdcard)
+include_directories(pio)
+
+#pico_generate_pio_header(main ${CMAKE_CURRENT_LIST_DIR}/input.pio)
 
 add_executable(main 
 main.c
@@ -28,4 +34,4 @@ pico_enable_stdio_uart(main 0)
 # create map/bin/hex/uf2 file etc.
 pico_add_extra_outputs(main)
 
-target_link_libraries(main examples lcd font config pico_stdlib hardware_spi fatfs hardware_adc)
+target_link_libraries(main sd examples lcd font config pico_stdlib hardware_spi fatfs hardware_adc hardware_pio)

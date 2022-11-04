@@ -84,6 +84,7 @@ void LCD_Show_bmp( LCD_SCAN_DIR Bmp_ScanDir, LCD_SCAN_DIR Lcd_ScanDir){
     for(showtime = 0; showtime < filesnumbers ; showtime++){
         sprintf((char*)str, "%-11.11s", pDirectoryFiles[bmpcounter -1]);
         
+		// Gets the length of the BMP
         checkstatus = Storage_CheckBitmapFile((const char*)str, &bmplen);
         
         if(checkstatus == 0){
